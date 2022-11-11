@@ -149,7 +149,7 @@ listcol_df =
     norm = list_norm
   )
 
-listcol_df[["norm"]]
+listcol_df[["norm"]] ## to take out the list "list_norm" that is being stored as the column "norm" in the listcol
 
 output = map(listcol_df[["norm"]], mean_and_sd)
 
@@ -160,7 +160,7 @@ can we add list columns, and then what
 ```{r}
 listcol_df %>% 
   mutate(
-    m_sd = map(norm, mean_and_sd)
+    m_sd = map_df(norm, mean_and_sd)
   ) %>% 
   select(-norm)
 ```
@@ -190,7 +190,7 @@ let's nest within weather stations...
 ```{r}
 weather_nest_df = 
   weather_df %>% 
-  nest(data = date:tmin)
+  nest(data = date:tmin)  ## nesting !!
 ```
 
 Really is a list column!
@@ -200,8 +200,9 @@ weather_nest_df[["data"]]
 ```
 
 ```{r}
-weather_nest_df[["data"]][[1]]
+weather_nest_df[["data"]][[1]] ##first taking out the data list column and then specifying that you want the first element(dataframe) of that list column 
 
+## fit a linear regression model 
 
 lm(tmax ~ tmin, data = weather_nest_df[["data"]][[1]])
 lm(tmax ~ tmin, data = weather_nest_df[["data"]][[2]])
@@ -219,16 +220,22 @@ weather_lm = function(df) {
 
 weather_lm(weather_nest_df[["data"]][[1]])
 
+## can now map across list for this function ## the "data" is the listcol of all three dataframes 
+
 map(weather_nest_df[["data"]], weather_lm)
 ```
 
 Can i do all this in a tidy way
 
 ```{r}
+## adding a column with linear regression results 
+## don't need to use brackets b/c pipping 
 weather_nest_df %>% 
   mutate(
     model = map(data, weather_lm)
   )
+
+weather_nest_df[["model"]]
 ```
 
 YUP
@@ -300,10 +307,11 @@ dynamite_reviews =
     read_page_reviews(vec_url[5])
   )
 
+### NEW STUFF 
 
 map(vec_url, read_page_reviews)
 
-
+### MAKE THIS ORGANIZED 
 napoleon_reviews = 
   tibble(
     page = 1:5,
@@ -312,7 +320,8 @@ napoleon_reviews =
   mutate(
     reviews = map(page_url, read_page_reviews)
   )
-
+##first tible has row by page, 5 pages 
+##unnested has row by review 
 napoleon_reviews %>% 
   select(-page_url) %>% 
   unnest(reviews)
